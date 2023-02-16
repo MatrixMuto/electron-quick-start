@@ -1,20 +1,21 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow } = require('electron')
 const path = require('path')
-const { contextIsolated } = require('process')
-const fs = require("fs")
-const { ipcMain, ipcRenderer } = require("electron")
+const { Adb } = require("@devicefarmer/adbkit")
+const client = Adb.createClient();
+const ipcMain = require('electron').ipcMain;
+const fs = require('fs')
+const https = require('https')
 
-var data = ''
 
+var data = ' '
 function createWindow() {
-
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.js')
     }
   })
 
@@ -24,10 +25,11 @@ function createWindow() {
   // Open the DevTools.
   mainWindow.webContents.openDevTools()
 
+
   ipcMain.on('file-drop', function (event, arg) {
     console.log("file-drop")
     const MAX_LEN = 70000;//((1 << 8) - 24)
-    var stream = fs.createReadStream('G:/00DTS_202302/花图问题/Log_20230203103917/Log_20230203103917_qcom_offline.log')
+    var stream = fs.createReadStream('E:/Work/qcom-Log/camera-record.log')
     stream.on('data', function (chunk) {
       if (data.length + chunk.length < MAX_LEN)
         data += chunk;
@@ -35,17 +37,24 @@ function createWindow() {
     });
     stream.on('end', function () {
       console.log("read end");
-      mainWindow.webContents.send('sendText', data)
+      mainWindow.webContents.send('updateText', data)
     })
   })
 
-  ipcMain.on('search', function(event, arg){
+  ipcMain.on('search', function (event, arg) {
     console.log("search", event, arg)
-    var result = data.split("\n").filter(line=>line.indexOf(arg)>-1);
+    var result = data.split("\n").filter(line => line.indexOf(arg) > -1);
     mainWindow.webContents.send('sendText', result)
   })
 
 }
+const iconName = path.join(__dirname, 'iconForDragAndDrop.png');
+const icon = fs.createWriteStream(iconName);
+
+fs.writeFileSync(path.join(__dirname, 'drag-and-drop-1.md'), '# First file to test drag and drop')
+https.get('https://img.icons8.com/ios/452/drag-and-drop.png', (response) => {
+  response.pipe(icon);
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -69,3 +78,34 @@ app.on('window-all-closed', function () {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+ipcMain.on('adbkit-update-devices', function (event, arg) {
+  console.log("11234")
+  updateDevices(event, arg);
+});
+
+function updateDevices(event, arg) {
+  console.log(`Updating device list`);
+  client.listDevicesWithPaths()
+    .then(function (devices) {
+      event.sender.send('adbkit-devices-updated', devices);
+    })
+    .catch(function (err) {
+      console.warn('Unable to get devices:', err.stack)
+      event.sender.send('adbkit-devices-updated', []);
+    });
+}
+
+
+ipcMain.on('do-a-thing', function (event, arg) {
+  console.log("1231231231231")
+})
+
+
+ipcMain.on('ondragstart', (event, filePath) => {
+  console.log("ondragstart")
+  event.sender.startDrag({
+    file: path.join(__dirname, filePath),
+    icon: iconName,
+  })
+})

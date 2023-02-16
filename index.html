@@ -1,27 +1,39 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-  <meta charset="UTF-8">
-  <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-  <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
-  <link href="./styles.css" rel="stylesheet">
-  <title>Hello World!</title>
-</head>
-
-<body>
-  <h1>Hello World!</h1>
-  We are using Node.js <span id="node-version"></span>,
-  Chromium <span id="chrome-version"></span>,
-  and Electron <span id="electron-version"></span>.
-  <input id="input-search"/>
+  <head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+    <link href="./styles.css" rel="stylesheet">
+    <title>Hello World!</title>
+  </head>
+  <body>
+    <!-- We are using Node.js <span id="node-version"></span>,
+    Chromium <span id="chrome-version"></span>,
+    and Electron <span id="electron-version"></span>. -->
+    <button id="btnTest1">123</button>
+    <!-- You can also require other files to run in this process -->
+    <div style="border:2px solid black;border-radius:3px;padding:5px;display:inline-block" draggable="true" id="drag">拖动我</div>
+      <input id="input-search"/>
   <button id="btn-search">搜索</button>
   <button id="btn1">加载文件</button>
-  <div>
-    <span id="text1"></span>
-  </div>
-  <script src="./renderer.js"></script>
-</body>
+    <input type="text">
+    <input type="checkbox" value="打开">
+    <input type="button" id="inputbtn" value="更新">
+    <details>
+      <summary>Details</summary>
+        Something small enough to escape casual notice.
+    </details>
+    <div class="for_drop" dropzone="linked" id="drop">
+    </div>
 
+  <div>
+    <span class="for_text" id="text1"></span>
+  </div>
+  <ul id="ultest" type="none">
+    <li></li>
+  </ul>
+
+    <script src="./renderer.js"></script>
+  </body>
 </html>

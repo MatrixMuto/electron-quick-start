@@ -1,3 +1,12 @@
 /* styles.css */
 
 /* Add styles here to customize the appearance of your app */
+.for_drop {
+    width: 200px;
+    height: 200px;
+    background: pink;
+}
+
+.for_text {
+    white-space: nowrap;
+}
