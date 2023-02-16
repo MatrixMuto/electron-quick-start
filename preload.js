@@ -5,6 +5,7 @@
  * 
  * https://www.electronjs.org/docs/latest/tutorial/sandbox
  */
+
 window.addEventListener('DOMContentLoaded', () => {
   const replaceText = (selector, text) => {
     const element = document.getElementById(selector)
@@ -14,4 +15,12 @@ window.addEventListener('DOMContentLoaded', () => {
   for (const type of ['chrome', 'node', 'electron']) {
     replaceText(`${type}-version`, process.versions[type])
   }
+})
+
+const { contextBridge, ipcRenderer, ipcMain } = require('electron')
+
+contextBridge.exposeInMainWorld('electron', {
+  onUpdateCounter: (callback) => ipcRenderer.on('sendText', callback),
+  startDrag: (fileName) => { ipcRenderer.send('file-drop', fileName) },
+  search: (keystr) => {ipcRenderer.send('search', keystr)}
 })
