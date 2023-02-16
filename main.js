@@ -1,14 +1,20 @@
 // Modules to control application life and create native browser window
-const {app, BrowserWindow} = require('electron')
+const { app, BrowserWindow } = require('electron')
 const path = require('path')
+const { contextIsolated } = require('process')
+const fs = require("fs")
+const { ipcMain, ipcRenderer } = require("electron")
 
-function createWindow () {
+var data = ''
+
+function createWindow() {
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
     }
   })
 
@@ -16,7 +22,29 @@ function createWindow () {
   mainWindow.loadFile('index.html')
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
+
+  ipcMain.on('file-drop', function (event, arg) {
+    console.log("file-drop")
+    const MAX_LEN = 70000;//((1 << 8) - 24)
+    var stream = fs.createReadStream('G:/00DTS_202302/花图问题/Log_20230203103917/Log_20230203103917_qcom_offline.log')
+    stream.on('data', function (chunk) {
+      if (data.length + chunk.length < MAX_LEN)
+        data += chunk;
+      // console.log("data length=", data.length, "chunk len=", chunk.length)
+    });
+    stream.on('end', function () {
+      console.log("read end");
+      mainWindow.webContents.send('sendText', data)
+    })
+  })
+
+  ipcMain.on('search', function(event, arg){
+    console.log("search", event, arg)
+    var result = data.split("\n").filter(line=>line.indexOf(arg)>-1);
+    mainWindow.webContents.send('sendText', result)
+  })
+
 }
 
 // This method will be called when Electron has finished
