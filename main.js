@@ -1,12 +1,15 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, Menu, MenuItem } = require('electron')
 const path = require('path')
 const { Adb } = require("@devicefarmer/adbkit")
 const client = Adb.createClient();
 const ipcMain = require('electron').ipcMain;
 const fs = require('fs')
 const https = require('https')
+const os = require('os')
+const pty = require('node-pty')
 
+var shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
 
 var data = ' '
 function createWindow() {
@@ -24,20 +27,33 @@ function createWindow() {
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools()
-
+  const menu = new Menu()
+  menu.append(new MenuItem({
+    role: 'term',
+    accelerator: 'Ctrl+J',
+    click: () => {
+      console.log("123")
+      // mainWindow.webContents.get
+    }
+  }))
+  // Menu.setApplicationMenu(menu)
 
   ipcMain.on('file-drop', function (event, arg) {
     console.log("file-drop")
     const MAX_LEN = 70000;//((1 << 8) - 24)
     var stream = fs.createReadStream('E:/Work/qcom-Log/camera-record.log')
+    
+    // stream.pipe()
     stream.on('data', function (chunk) {
-      if (data.length + chunk.length < MAX_LEN)
-        data += chunk;
+      // if (data.length + chunk.length < MAX_LEN)
+      //   data += chunk;
+      
+      mainWindow.webContents.send('updateText', ""+chunk)
       // console.log("data length=", data.length, "chunk len=", chunk.length)
     });
+
     stream.on('end', function () {
       console.log("read end");
-      mainWindow.webContents.send('updateText', data)
     })
   })
 
@@ -47,6 +63,23 @@ function createWindow() {
     mainWindow.webContents.send('sendText', result)
   })
 
+  var ptyProcess = pty.spawn(shell, [], {
+    name: 'xterm-color',
+    cols: 80,
+    rows: 30,
+    cwd: process.env.HOME,
+    env: process.env
+  });
+
+  ptyProcess.onData(function (data) {
+    console.log("Data sent", data);
+    mainWindow.webContents.send("terminal.incomingData", data);
+  });
+
+
+  ipcMain.on("terminal.keystroke", (event, key) => {
+    ptyProcess.write(key);
+  });
 }
 const iconName = path.join(__dirname, 'iconForDragAndDrop.png');
 const icon = fs.createWriteStream(iconName);
@@ -76,9 +109,6 @@ app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit()
 })
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
-
 ipcMain.on('adbkit-update-devices', function (event, arg) {
   console.log("11234")
   updateDevices(event, arg);
@@ -95,7 +125,6 @@ function updateDevices(event, arg) {
       event.sender.send('adbkit-devices-updated', []);
     });
 }
-
 
 ipcMain.on('do-a-thing', function (event, arg) {
   console.log("1231231231231")

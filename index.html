@@ -5,9 +5,12 @@
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
     <link href="./styles.css" rel="stylesheet">
+    <link rel="stylesheet" href="node_modules/xterm/css/xterm.css" />
     <title>Hello World!</title>
+    <script src="node_modules/xterm/lib/xterm.js"></script>
   </head>
   <body>
+    <div id="terminal"></div>
     <!-- We are using Node.js <span id="node-version"></span>,
     Chromium <span id="chrome-version"></span>,
     and Electron <span id="electron-version"></span>. -->

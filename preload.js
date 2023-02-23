@@ -21,7 +21,11 @@ contextBridge.exposeInMainWorld(
     updatedevice:() => {
       ipcRenderer.send('adbkit-update-devices')
     },
-    onUpdateCounter: (callback) => {ipcRenderer.on('updateText', callback)}
+    onUpdateCounter: (callback) => {ipcRenderer.on('updateText', callback)},
+
+    termsend: (cmd) => ipcRenderer.send('terminal.keystroke', cmd),
+
+    termshow: (data) => ipcRenderer.on('terminal.incomingData', data)
   }
 )
 
