@@ -10,3 +10,9 @@
 .for_text {
     white-space: nowrap;
 }
+.box {
+    border: 2px solid #778899;
+}
+.box:focus {
+    border: 2px solid darkblue;
+}

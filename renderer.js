@@ -37,23 +37,27 @@
 //   term.write(value)
 // })
 
-window.electron.doThing()
-var ultest = document.getElementById("ultest")
+// window.electron.doThing()
+window.electron.startDrop('E:/Work/qcom-Log/camera-record.log')
 
-ultest.addEventListener('click', function (e) {
-  console.log(e.target);
-})
+// var ultest = document.getElementById("ultest")
+
+// ultest.addEventListener('click', function (e) {
+//   console.log(e.target);
+// })
 
 document.getElementById('drag').ondragstart = (event) => {
   event.preventDefault()
-  window.electron.startDrag('drag-and-drop-1.md')
+  window.electron.startDrag('E:/Work/qcom-Log/camera-record.log')
 }
-document.getElementById('drop').addEventListener('dragover', (e) => {
+document.addEventListener('dragover', (e) => {
   e.preventDefault();
+  console.log("drog over")
   // e.stopPropagation();
 });
-document.getElementById('drop').addEventListener("drop", (e) => {
+document.addEventListener("drop", (e) => {
   e.preventDefault();
+  textDiv.replaceChildren()  
   // e.stopPropagation();
   const files = e.dataTransfer.files;
   if (files && files.length > 0) {
@@ -62,63 +66,69 @@ document.getElementById('drop').addEventListener("drop", (e) => {
     window.electron.startDrop(path)
   }
 })
-
-
-
-
-
-const btn = document.getElementById("btnTest1")
-if (btn) btn.innerText = "nimei"
-btn.onclick = () => {
-  btn.innerText = "nimei2"
-  //   ipcRenderer.send('adbkit-update-devices');
-  window.electron.updatedevice()
-}
+// const btn = document.getElementById("btnTest1")
+// if (btn) btn.innerText = "nimei"
+// btn.onclick = () => {
+//   btn.innerText = "nimei2"
+//   //   ipcRenderer.send('adbkit-update-devices');
+//   window.electron.updatedevice()
+// }
 
 window.addEventListener('scroll', function (event, data) {
   //console.log("scroll 111", event, data)
 })
 
-
-
-
-var textSpan = document.getElementById("text1")
+// var textSpan = document.getElementById("text1")
 
 var textDiv;
-
-
-document.getElementById("btn1").onclick = () => {
-  //计算text区域的viewport,能加载多少行?从第几行到第几行
-  window.electron.startDrop()
-
-  //创建logViewer的div
+function createTextDiv()
+{
   textDiv = document.createElement("div")
   textDiv.innerHTML = "test"
+  textDiv.style.height = '1000000px'
+  textDiv.style.backgroundColor = '#778899'
   document.body.appendChild(textDiv)
+}
+document.getElementById("btn1").onclick = () => {
+  //计算text区域的viewport,能加载多少行?从第几行到第几行
+  window.electron.startDrop('E:/Work/qcom-Log/camera-record.log')
+  createTextDiv();
+}
+
+var getRandomColor = function(){
+  return '#'+(Math.random()*0xffffff<<0).toString(16); 
 }
 
 //更新文字,一次更新多行
 window.electron.onUpdateCounter((event, value) => {
+  if (textDiv == null) createTextDiv();
   // const oldValue = Number(counter.innerText)
   // const newValue = oldValue + value
-  //textSpan.innerText = value
+  // textSpan.innerText = value
   const splits = value.split('\n');
   for (var i = 0; i < splits.length; i++) {
     // var li = document.createElement("li")
     // li.appendChild(document.createTextNode(splits[i]))
     // ultest.appendChild(li)
     console.log("textDiv.childNodes", textDiv.childNodes.length)
-    if (textDiv.childNodes.length > 2000)
+    if (textDiv.childNodes.length > 10)
     {
       console.log("exceed max len 2000")
       break
     }
 
     var span = document.createElement("span")
-    span.innerText = i +":" + splits[i];
+    span.innerText = splits[i];
+    span.style.whiteSpace =  'nowrap'
+    // span.style.border = '1px'
     var div = document.createElement("div")
     div.appendChild(span)
-  
+    // div.style.backgroundColor = getRandomColor()
+    // div.style.border = '2px solid blue'
+    // div.style.height = '30px'
+    div.className = 'box'
+    div.tabIndex = i
+    // div.onclick = () => {console.log("111");div.focus()}
     textDiv.appendChild(div)
   }
   //console.log("value=", value, "12345")

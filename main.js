@@ -39,9 +39,9 @@ function createWindow() {
   // Menu.setApplicationMenu(menu)
 
   ipcMain.on('file-drop', function (event, arg) {
-    console.log("file-drop")
+    console.log("file-drop" + arg)
     const MAX_LEN = 70000;//((1 << 8) - 24)
-    var stream = fs.createReadStream('E:/Work/qcom-Log/camera-record.log')
+    var stream = fs.createReadStream(arg)
     
     // stream.pipe()
     stream.on('data', function (chunk) {
