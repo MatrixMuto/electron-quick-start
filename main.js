@@ -12,6 +12,10 @@ const pty = require('node-pty')
 var shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
 
 var data = ' '
+
+var eol_offsets = []
+var line_count = 0
+var gFileName = ""
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -38,22 +42,45 @@ function createWindow() {
   }))
   // Menu.setApplicationMenu(menu)
 
-  ipcMain.on('file-drop', function (event, arg) {
-    console.log("file-drop" + arg)
+  //建议索引
+  //   行号  offset_of_endofline
+  //   1       0
+  //
+  ipcMain.on('file-drop', function (event, filename) {
+    console.log("file-drop" + filename)
+    gFileName = filename
     const MAX_LEN = 70000;//((1 << 8) - 24)
-    var stream = fs.createReadStream(arg)
-    
-    // stream.pipe()
+    var stream = fs.createReadStream(filename)
+    chunk_offset = 0
     stream.on('data', function (chunk) {
-      // if (data.length + chunk.length < MAX_LEN)
-      //   data += chunk;
-      
-      mainWindow.webContents.send('updateText', ""+chunk)
-      // console.log("data length=", data.length, "chunk len=", chunk.length)
+      for (var i = 0; i < chunk.length; i++) {
+        if (chunk[i] == 0xa) {
+          eol_offsets[line_count++] = chunk_offset + i;
+        }
+      }
+      chunk_offset += chunk.length
+      // mainWindow.webContents.send('updateText', "" + chunk)
     });
-
+    /*
+    stream.on('readable', () => {
+      for (; ;) {
+        chunk = stream.read(4096 * 512)
+        if (chunk == null)
+          break
+        console.log("" + chunk)
+        for (var i = 0; i < chunk.length; i++) {
+          if (chunk[i] == 0x0a) {
+            eol_offsets[line_count++] = chunk_offset + i;
+          }
+          // console.log(chunk[i], '\n')
+        }
+        chunk_offset += chunk.length
+      }
+    })
+    */
     stream.on('end', function () {
-      console.log("read end");
+      console.log("read end, line_count=", line_count);
+      stream.close()
     })
   })
 
@@ -63,23 +90,23 @@ function createWindow() {
     mainWindow.webContents.send('sendText', result)
   })
 
-  var ptyProcess = pty.spawn(shell, [], {
-    name: 'xterm-color',
-    cols: 80,
-    rows: 30,
-    cwd: process.env.HOME,
-    env: process.env
-  });
+  // var ptyProcess = pty.spawn(shell, [], {
+  //   name: 'xterm-color',
+  //   cols: 80,
+  //   rows: 30,
+  //   cwd: process.env.HOME,
+  //   env: process.env
+  // });
 
-  ptyProcess.onData(function (data) {
-    console.log("Data sent", data);
-    mainWindow.webContents.send("terminal.incomingData", data);
-  });
+  // ptyProcess.onData(function (data) {
+  //   console.log("Data sent", data);
+  //   mainWindow.webContents.send("terminal.incomingData", data);
+  // });
 
 
-  ipcMain.on("terminal.keystroke", (event, key) => {
-    ptyProcess.write(key);
-  });
+  // ipcMain.on("terminal.keystroke", (event, key) => {
+  //   ptyProcess.write(key);
+  // });
 }
 const iconName = path.join(__dirname, 'iconForDragAndDrop.png');
 const icon = fs.createWriteStream(iconName);
@@ -136,5 +163,22 @@ ipcMain.on('ondragstart', (event, filePath) => {
   event.sender.startDrag({
     file: path.join(__dirname, filePath),
     icon: iconName,
+  })
+})
+
+ipcMain.on('mainUpdate', (e, startOfLine) => {
+  console.log("mainUpdate ", startOfLine)
+  if (startOfLine > line_count)
+    return
+  var offset = eol_offsets[startOfLine]
+  var stream = fs.createReadStream(gFileName, { start : offset, end: (offset+4096*16)})
+  var result = "" 
+  stream.on('data', (chunk) => {
+    result += chunk
+  })
+
+  stream.on('end',()=>{
+    stream.close()
+    e.sender.send('updateText', result)
   })
 })

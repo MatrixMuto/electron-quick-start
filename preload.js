@@ -18,6 +18,9 @@ contextBridge.exposeInMainWorld(
     startDrop: (filename) => {
       ipcRenderer.send('file-drop', filename)
     },
+    mainUpdate: (startOfLine) => {
+      ipcRenderer.send('mainUpdate', startOfLine)
+    },
     updatedevice:() => {
       ipcRenderer.send('adbkit-update-devices')
     },

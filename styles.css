@@ -9,10 +9,12 @@
 
 .for_text {
     white-space: nowrap;
+    font-size: 13px;
+    font-family:'Courier New', Courier, monospace;
 }
 .box {
-    border: 2px solid #778899;
+    border: 1px solid #778899;
 }
 .box:focus {
-    border: 2px solid darkblue;
+    border: 1px solid darkblue;
 }
